@@ -12,6 +12,7 @@
             --accent: #1a1a1a;
             --border: #222222;
             --nav-bg: #2a2a2a;
+            
             /* Pastel Palette */
             --pastel-y: #fff9c4;
             --pastel-p: #f8bbd0;
@@ -73,6 +74,7 @@
             align-items: center;
             padding: 1.5rem 0;
             flex-shrink: 0;
+            z-index: 10;
         }
 
         .header h1 {
@@ -89,6 +91,7 @@
             align-items: center;
             text-align: center;
             min-height: 0; 
+            padding-bottom: 2rem;
         }
 
         .footer-zone {
@@ -96,8 +99,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-bottom: calc(var(--safe-bottom) + 1rem);
+            padding-bottom: calc(var(--safe-bottom) + 1.5rem);
             gap: 0.5rem;
+            z-index: 10;
         }
 
         /* Elements */
@@ -107,10 +111,10 @@
             text-decoration: none;
             cursor: pointer;
             background: var(--nav-bg);
-            padding: 0.6rem 1.2rem;
+            padding: 0.7rem 1.4rem;
             border-radius: 20px;
-            font-weight: 500;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.6);
         }
 
         .collections-list {
@@ -143,32 +147,34 @@
         }
 
         #phrase-display {
-            font-size: 1.6rem;
-            line-height: 1.6;
+            font-size: 1.7rem;
+            line-height: 1.5;
             max-width: 600px;
-            color: #d1d1d1;
+            color: #e0e0e0;
+            font-weight: 400;
+            transition: opacity 0.2s ease;
         }
 
         /* Stats & Meta */
         .meta-info {
             color: var(--text-main);
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 300;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
         }
 
         .instruction-hint {
             color: var(--text-dim);
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
         }
 
         /* Editor Specifics */
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1.2rem;
             flex-grow: 1;
             min-height: 0;
             overflow-y: auto;
@@ -177,10 +183,10 @@
         input#col-title {
             background: transparent;
             border: none;
-            border-bottom: 1px solid var(--border);
-            color: #d1d1d1;
-            font-size: 1.4rem;
-            padding: 0.5rem 0;
+            border-bottom: 2px solid var(--border);
+            color: #ffffff;
+            font-size: 1.5rem;
+            padding: 0.8rem 0;
             outline: none;
             flex-shrink: 0;
             font-family: inherit;
@@ -190,24 +196,22 @@
             flex-grow: 1;
             background: transparent;
             border: 1px solid var(--border);
-            color: var(--text-main);
+            color: #d1d1d1;
             padding: 1.2rem;
-            font-size: 1.1rem;
-            border-radius: 8px;
+            font-size: 1.15rem;
+            border-radius: 12px;
             outline: none;
-            line-height: 1.5;
+            line-height: 1.6;
             -webkit-appearance: none; 
             font-family: inherit;
-            margin-bottom: 0.5rem;
-            /* RESIZE FUNCTIONALITY */
             resize: vertical;
-            min-height: 375px;
+            min-height: 250px;
         }
 
         .actions {
             display: flex;
             gap: 1rem;
-            padding-bottom: calc(var(--safe-bottom) + 0.5rem);
+            padding: 1rem 0 calc(var(--safe-bottom) + 1rem);
             flex-shrink: 0;
             margin-top: auto;
         }
@@ -217,24 +221,19 @@
             background: #ffffff;
             color: #000000;
             border: none;
-            padding: 1.1rem;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            font-weight: 700;
+            padding: 1.2rem;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
-            box-shadow: 0 4px 12px rgba(255,255,255,0.1);
-        }
-
-        .btn:active {
-            opacity: 0.8;
-            transform: scale(0.98);
+            box-shadow: 0 4px 15px rgba(255,255,255,0.1);
         }
 
         .btn.danger {
-            background: #2a1111;
-            color: #ff6666;
-            border: 1px solid #441111;
+            background: #441111;
+            color: #ff8888;
+            border: 1px solid #661111;
             box-shadow: none;
         }
 
@@ -243,7 +242,7 @@
             top: 0;
             left: 0;
             height: 4px;
-            background: #444;
+            background: #555;
             width: 0%;
             transition: width 0.3s ease;
         }
@@ -255,7 +254,7 @@
     <div id="home-view" class="view active">
         <div class="header">
             <h1 class="serif-title">Echoes</h1>
-            <div class="nav-link" onclick="openEditor()">New Collection</div>
+            <div class="nav-link" onclick="openEditor()">+ New</div>
         </div>
         <div id="collections-list" class="collections-list"></div>
     </div>
@@ -268,20 +267,20 @@
             <div class="nav-link" onclick="openEditor(currentCollectionId)">Edit</div>
         </div>
         
-        <div class="content-zone" onclick="handleCenterTap(event)">
-            <div id="phrase-display">Tap to begin</div>
+        <div class="content-zone" id="touch-zone">
+            <div id="phrase-display">...</div>
         </div>
         
         <div class="footer-zone">
             <div class="meta-info" id="stats">0 / 0</div>
-            <div class="instruction-hint">Swipe left/right to navigate</div>
+            <div class="instruction-hint">Tap to Speak / Swipe to Move</div>
         </div>
     </div>
 
     <!-- EDITOR VIEW -->
     <div id="editor-view" class="view">
         <div class="header">
-            <h1 id="editor-heading" class="serif-title" style="font-size: 1.4rem;">New Collection</h1>
+            <h1 id="editor-heading" class="serif-title" style="font-size: 1.4rem;">Collection</h1>
             <div class="nav-link" onclick="showView('home')">Cancel</div>
         </div>
         <div class="input-group">
@@ -290,14 +289,14 @@
         </div>
         <div class="actions">
             <button class="btn danger" id="delete-btn" onclick="deleteCollection()">Delete</button>
-            <button class="btn" onclick="saveCollection()">Save</button>
+            <button class="btn" onclick="saveCollection()">Save Echo</button>
         </div>
     </div>
 
     <script>
         let collections = [];
         let currentCollectionId = null;
-        let currentIndex = -1;
+        let currentIndex = 0;
         const synth = window.speechSynthesis;
         
         let touchStartX = 0;
@@ -313,16 +312,18 @@
                 collections = [{
                     id: Date.now(),
                     title: "Fragments",
-                    phrases: ["The privilege of a lifetime is to become who you truly are.", "Everything that irritates us about others can lead us to an understanding of ourselves.", "The dream is the small hidden door in the deepest and most intimate sanctum of the soul."]
+                    phrases: ["The privilege of a lifetime is to become who you truly are.", "Everything that irritates us about others can lead us to an understanding of ourselves.", "The dream is the small hidden door in the deepest sanctum of the soul."]
                 }];
                 saveToDisk();
             }
             renderHome();
-            setupSwipes();
+            setupInteractions();
         };
 
-        function setupSwipes() {
+        function setupInteractions() {
             const player = document.getElementById('player-view');
+            const zone = document.getElementById('touch-zone');
+
             player.addEventListener('touchstart', e => {
                 touchStartX = e.changedTouches[0].screenX;
             }, {passive: true});
@@ -331,12 +332,16 @@
                 touchEndX = e.changedTouches[0].screenX;
                 handleSwipe();
             }, {passive: true});
-        }
 
-        function handleCenterTap(e) {
-            if (Math.abs(touchEndX - touchStartX) < 10) {
-                navigate(1);
-            }
+            zone.addEventListener('click', () => {
+                // If it wasn't a swipe, it's a tap to speak/advance
+                if (Math.abs(touchEndX - touchStartX) < 10) {
+                    const col = collections.find(c => c.id === currentCollectionId);
+                    if (col && col.phrases[currentIndex]) {
+                        speak(col.phrases[currentIndex]);
+                    }
+                }
+            });
         }
 
         function handleSwipe() {
@@ -386,9 +391,7 @@
                 titleInput.value = col.title;
                 contentInput.value = col.phrases.join('\n');
                 document.getElementById('editor-heading').innerText = "Edit Collection";
-                deleteBtn.style.display = 'flex';
-                deleteBtn.style.alignItems = 'center';
-                deleteBtn.style.justifyContent = 'center';
+                deleteBtn.style.display = 'block';
             } else {
                 titleInput.value = '';
                 contentInput.value = '';
@@ -401,7 +404,9 @@
         function saveCollection() {
             const title = document.getElementById('col-title').value.trim() || "Untitled";
             const content = document.getElementById('col-content').value.trim();
-            const phrases = content.split('\n').filter(p => p.trim() !== '');
+            const phrases = content.split('\n')
+                .map(p => p.trim())
+                .filter(p => p.length > 0);
 
             if (currentCollectionId) {
                 const idx = collections.findIndex(c => c.id === currentCollectionId);
@@ -423,9 +428,15 @@
 
         function startPlayer(id) {
             currentCollectionId = id;
-            currentIndex = -1;
+            currentIndex = 0; // Start at the first phrase immediately
             const col = collections.find(c => c.id === id);
-            document.getElementById('phrase-display').innerText = col.title;
+            
+            if (col && col.phrases.length > 0) {
+                document.getElementById('phrase-display').innerText = col.phrases[0];
+            } else {
+                document.getElementById('phrase-display').innerText = "No phrases found.";
+            }
+            
             updateStats();
             showView('player');
         }
@@ -433,18 +444,22 @@
         function navigate(direction) {
             const col = collections.find(c => c.id === currentCollectionId);
             if (!col || col.phrases.length === 0) return;
-            currentIndex += direction;
-            if (currentIndex < 0) { currentIndex = 0; return; }
-            if (currentIndex >= col.phrases.length) {
-                currentIndex = col.phrases.length - 1;
+
+            const nextIdx = currentIndex + direction;
+            
+            if (nextIdx >= 0 && nextIdx < col.phrases.length) {
+                currentIndex = nextIdx;
+                const text = col.phrases[currentIndex];
+                document.getElementById('phrase-display').style.opacity = 0;
+                setTimeout(() => {
+                    document.getElementById('phrase-display').innerText = text;
+                    document.getElementById('phrase-display').style.opacity = 1;
+                    speak(text);
+                }, 150);
+            } else if (nextIdx >= col.phrases.length) {
                 document.getElementById('phrase-display').innerText = "End of Collection";
                 speak("End of Collection");
-                updateStats();
-                return;
             }
-            const text = col.phrases[currentIndex];
-            document.getElementById('phrase-display').innerText = text;
-            speak(text);
             updateStats();
         }
 
@@ -452,7 +467,7 @@
             synth.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 0.85;
-            utterance.pitch = 0.9;
+            utterance.pitch = 0.95;
             utterance.lang = 'en-US';
             synth.speak(utterance);
         }
@@ -462,8 +477,8 @@
             if (!col) return;
             const count = col.phrases.length;
             const current = currentIndex + 1;
-            document.getElementById('stats').innerText = `${current > 0 ? current : 0} / ${count}`;
-            const progressWidth = count > 0 ? (Math.max(0, current) / count) * 100 : 0;
+            document.getElementById('stats').innerText = `${current} / ${count}`;
+            const progressWidth = count > 0 ? (current / count) * 100 : 0;
             document.getElementById('progress').style.width = `${progressWidth}%`;
         }
     </script>
