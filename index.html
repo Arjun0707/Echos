@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Morning Echo</title>
     <style>
         :root {
@@ -18,6 +18,9 @@
             --pastel-g: #c8e6c9;
             --pastel-b: #e1f5fe;
             --pastel-v: #f3e5f5;
+            
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
+            --safe-top: env(safe-area-inset-top, 20px);
         }
 
         * {
@@ -33,10 +36,15 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            height: -webkit-fill-available; 
             overflow: hidden;
+            padding-top: var(--safe-top);
         }
 
-        /* Typography */
+        html {
+            height: -webkit-fill-available;
+        }
+
         .serif-title {
             font-family: "Iowan Old Style", "Apple Garamond", "Baskerville", "Times New Roman", "Droid Serif", Times, "Source Serif Pro", serif;
             font-style: italic;
@@ -44,13 +52,13 @@
             letter-spacing: 0.05em;
         }
 
-        /* Views */
+        /* View Container */
         .view {
             display: none;
             flex-direction: column;
             height: 100%;
             width: 100%;
-            padding: 1.5rem;
+            padding: 0 1.5rem;
             position: relative;
         }
 
@@ -58,13 +66,13 @@
             display: flex;
         }
 
-        /* Navigation Header */
+        /* Layout Zones */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 1.5rem 0;
-            margin-bottom: 1rem;
+            flex-shrink: 0;
         }
 
         .header h1 {
@@ -73,6 +81,26 @@
             color: #d1d1d1;
         }
 
+        .content-zone {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 0; /* Allow shrinking if needed */
+        }
+
+        .footer-zone {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: calc(var(--safe-bottom) + 1rem);
+            gap: 0.5rem;
+        }
+
+        /* Elements */
         .nav-link {
             font-size: 0.85rem;
             color: #ffffff;
@@ -82,29 +110,22 @@
             padding: 0.6rem 1.2rem;
             border-radius: 20px;
             font-weight: 500;
-            transition: opacity 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
-        .nav-link:active {
-            opacity: 0.7;
-        }
-
-        /* Home View (Collections) */
         .collections-list {
             display: flex;
             flex-wrap: wrap;
             gap: 0.8rem;
             overflow-y: auto;
-            padding-bottom: 2rem;
+            padding-bottom: calc(var(--safe-bottom) + 2rem);
         }
 
         .collection-card {
             padding: 0.8rem 1.2rem;
             border-radius: 8px;
-            display: inline-block;
             cursor: pointer;
             min-width: 100px;
-            max-width: 100%;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
@@ -112,7 +133,6 @@
             font-size: 1rem;
             color: #1a1a1a;
             font-weight: 600;
-            margin-bottom: 0.2rem;
         }
 
         .collection-count {
@@ -122,29 +142,35 @@
             font-weight: bold;
         }
 
-        /* Player View */
-        #player-view {
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            touch-action: pan-y; /* Prevent vertical scroll during swipe */
-        }
-
         #phrase-display {
             font-size: 1.6rem;
             line-height: 1.6;
             max-width: 600px;
-            user-select: none;
             color: #d1d1d1;
-            padding: 1rem;
         }
 
-        /* Editor View */
+        /* Stats & Meta */
+        .meta-info {
+            color: var(--text-main);
+            font-size: 1.4rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .instruction-hint {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Editor Specifics */
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1rem;
             flex-grow: 1;
+            min-height: 0;
         }
 
         input#col-title {
@@ -155,7 +181,6 @@
             font-size: 1.4rem;
             padding: 0.5rem 0;
             outline: none;
-            font-family: inherit;
         }
 
         textarea {
@@ -165,55 +190,33 @@
             color: var(--text-main);
             padding: 1rem;
             font-size: 1.1rem;
-            font-family: inherit;
+            border-radius: 8px;
             resize: none;
             outline: none;
-            border-radius: 8px;
-            line-height: 1.5;
+            -webkit-appearance: none;
         }
 
         .actions {
             display: flex;
             gap: 1rem;
-            margin-top: 1.5rem;
+            padding: 1rem 0 calc(var(--safe-bottom) + 0.5rem);
         }
 
         .btn {
             flex: 1;
-            background: var(--nav-bg);
-            color: #ffffff;
+            background: #ffffff;
+            color: #000000;
             border: none;
-            padding: 1.2rem;
+            padding: 1rem;
             border-radius: 12px;
             font-size: 0.9rem;
-            cursor: pointer;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
         }
 
         .btn.danger {
             background: #331111;
             color: #ff6666;
-        }
-
-        /* Meta / Stats */
-        .meta-info {
-            position: absolute;
-            bottom: 4rem;
-            color: var(--text-main);
-            font-size: 1.4rem; /* Larger font as requested */
-            font-weight: 300;
-            letter-spacing: 2px;
-        }
-
-        .instruction-hint {
-            position: absolute;
-            bottom: 2rem;
-            color: var(--text-dim);
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .progress-bar {
@@ -235,23 +238,25 @@
             <h1 class="serif-title">Echoes</h1>
             <div class="nav-link" onclick="openEditor()">New Collection</div>
         </div>
-        <div id="collections-list" class="collections-list">
-            <!-- Cards injected here -->
-        </div>
+        <div id="collections-list" class="collections-list"></div>
     </div>
 
     <!-- PLAYER VIEW -->
     <div id="player-view" class="view">
         <div class="progress-bar" id="progress"></div>
-        <div class="header" style="position: absolute; top:0; left:1.5rem; right:1.5rem;">
+        <div class="header">
             <div class="nav-link" onclick="showView('home')">← Back</div>
             <div class="nav-link" onclick="openEditor(currentCollectionId)">Edit</div>
         </div>
         
-        <div id="phrase-display">Tap to begin</div>
+        <div class="content-zone" onclick="handleCenterTap(event)">
+            <div id="phrase-display">Tap to begin</div>
+        </div>
         
-        <div class="meta-info" id="stats">0 / 0</div>
-        <div class="instruction-hint">Swipe left/right to navigate</div>
+        <div class="footer-zone">
+            <div class="meta-info" id="stats">0 / 0</div>
+            <div class="instruction-hint">Swipe left/right to navigate</div>
+        </div>
     </div>
 
     <!-- EDITOR VIEW -->
@@ -261,8 +266,8 @@
             <div class="nav-link" onclick="showView('home')">Cancel</div>
         </div>
         <div class="input-group">
-            <input type="text" id="col-title" placeholder="Title">
-            <textarea id="col-content" placeholder="Phrases (one per line)"></textarea>
+            <input type="text" id="col-title" placeholder="Title" autocomplete="off">
+            <textarea id="col-content" placeholder="Phrases (one per line)" autocomplete="off"></textarea>
         </div>
         <div class="actions">
             <button class="btn danger" id="delete-btn" onclick="deleteCollection()">Delete</button>
@@ -276,17 +281,10 @@
         let currentIndex = -1;
         const synth = window.speechSynthesis;
         
-        // Touch handling
         let touchStartX = 0;
         let touchEndX = 0;
 
-        const pastelColors = [
-            '#fff9c4', // Yellow
-            '#f8bbd0', // Pink
-            '#c8e6c9', // Green
-            '#e1f5fe', // Blue
-            '#f3e5f5'  // Violet
-        ];
+        const pastelColors = ['#fff9c4', '#f8bbd0', '#c8e6c9', '#e1f5fe', '#f3e5f5'];
 
         window.onload = () => {
             const saved = localStorage.getItem('morning_echo_v2');
@@ -314,22 +312,18 @@
                 touchEndX = e.changedTouches[0].screenX;
                 handleSwipe();
             }, {passive: true});
+        }
 
-            // Tap fallback for single click advancement
-            player.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('nav-link')) {
-                    // Only advance on click if it wasn't a swipe
-                    if (Math.abs(touchEndX - touchStartX) < 10) {
-                        navigate(1);
-                    }
-                }
-            });
+        function handleCenterTap(e) {
+            if (Math.abs(touchEndX - touchStartX) < 10) {
+                navigate(1);
+            }
         }
 
         function handleSwipe() {
             const threshold = 50;
-            if (touchEndX < touchStartX - threshold) navigate(1); // Swipe Left -> Next
-            if (touchEndX > touchStartX + threshold) navigate(-1); // Swipe Right -> Prev
+            if (touchEndX < touchStartX - threshold) navigate(1); 
+            if (touchEndX > touchStartX + threshold) navigate(-1); 
         }
 
         function saveToDisk() {
@@ -343,6 +337,7 @@
                 renderHome();
                 synth.cancel();
             }
+            document.activeElement.blur();
         }
 
         function renderHome() {
@@ -389,7 +384,7 @@
 
             if (currentCollectionId) {
                 const idx = collections.findIndex(c => c.id === currentCollectionId);
-                collections[idx] = { ...collections[idx], title, phrases };
+                if (idx !== -1) collections[idx] = { ...collections[idx], title, phrases };
             } else {
                 collections.push({ id: Date.now(), title, phrases });
             }
@@ -417,14 +412,8 @@
         function navigate(direction) {
             const col = collections.find(c => c.id === currentCollectionId);
             if (!col || col.phrases.length === 0) return;
-
             currentIndex += direction;
-            
-            if (currentIndex < 0) {
-                currentIndex = 0;
-                return;
-            }
-
+            if (currentIndex < 0) { currentIndex = 0; return; }
             if (currentIndex >= col.phrases.length) {
                 currentIndex = col.phrases.length - 1;
                 document.getElementById('phrase-display').innerText = "End of Collection";
@@ -432,7 +421,6 @@
                 updateStats();
                 return;
             }
-
             const text = col.phrases[currentIndex];
             document.getElementById('phrase-display').innerText = text;
             speak(text);
