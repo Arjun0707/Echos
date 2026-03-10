@@ -13,12 +13,12 @@
             --border: #222222;
             --nav-bg: #2a2a2a;
             
-            /* Pastel Palette */
-            --pastel-y: #fff9c4;
-            --pastel-p: #f8bbd0;
-            --pastel-g: #c8e6c9;
-            --pastel-b: #e1f5fe;
-            --pastel-v: #f3e5f5;
+            /* High-Luminance Tints (Low Eye-Strain) */
+            --tint-y: #fffef2;
+            --tint-p: #fffafa;
+            --tint-g: #f7fff7;
+            --tint-b: #f5faff;
+            --tint-v: #faf5ff;
             
             --safe-bottom: env(safe-area-inset-bottom, 20px);
             --safe-top: env(safe-area-inset-top, 20px);
@@ -332,7 +332,8 @@
         let touchEndX = 0;
         let touchEndY = 0;
 
-        const pastelColors = ['#fff9c4', '#f8bbd0', '#c8e6c9', '#e1f5fe', '#f3e5f5'];
+        // Extremely light tints to minimize light shock
+        const pastelColors = ['#fffef2', '#fffafa', '#f7fff7', '#f5faff', '#faf5ff'];
 
         window.onload = () => {
             const saved = localStorage.getItem('morning_echo_v2');
@@ -368,15 +369,13 @@
             }, {passive: true});
 
             card.addEventListener('click', (e) => {
-                // Determine if it was a tap by checking distance
                 const dx = Math.abs(touchEndX - touchStartX);
                 const dy = Math.abs(touchEndY - touchStartY);
                 if (dx < 10 && dy < 10) {
                     const col = collections.find(c => c.id === currentCollectionId);
-                    if (col && col.phrases[currentIndex]) {
+                    if (col && currentIndex < col.phrases.length) {
                         speak(col.phrases[currentIndex]);
                     } else if (document.getElementById('phrase-display').innerText === "Tap to Begin") {
-                        // Handle the very first tap to start
                         navigate(0);
                     }
                 }
@@ -388,10 +387,9 @@
             const dx = touchEndX - touchStartX;
             const dy = touchEndY - touchStartY;
             
-            // Ensure swipe is primarily horizontal
             if (Math.abs(dx) > Math.abs(dy)) {
-                if (dx < -threshold) navigate(1); // Swipe Left -> Next
-                if (dx > threshold) navigate(-1); // Swipe Right -> Prev
+                if (dx < -threshold) navigate(1); // Swipe Left (Finger moves Left) -> Next
+                if (dx > threshold) navigate(-1); // Swipe Right (Finger moves Right) -> Prev
             }
         }
 
@@ -481,7 +479,6 @@
             
             if (col && col.phrases.length > 0) {
                 document.getElementById('phrase-display').innerText = col.phrases[0];
-                // Automatically speak the first one since we entered via a click
                 speak(col.phrases[0]);
             } else {
                 document.getElementById('phrase-display').innerText = "No phrases found.";
@@ -495,25 +492,32 @@
             const col = collections.find(c => c.id === currentCollectionId);
             if (!col || col.phrases.length === 0) return;
 
-            const nextIdx = currentIndex + direction;
-            const card = document.getElementById('flash-card-container');
+            let nextIdx = currentIndex + direction;
             
-            if (nextIdx >= 0 && nextIdx < col.phrases.length) {
-                currentIndex = nextIdx;
-                const text = col.phrases[currentIndex];
-                
-                card.style.opacity = 0;
-                setTimeout(() => {
-                    document.getElementById('phrase-display').innerText = text;
-                    card.style.opacity = 1;
-                    speak(text); // Automatically speak after navigation
-                }, 150);
-            } else if (nextIdx >= col.phrases.length) {
-                const endMsg = "End of Collection";
-                document.getElementById('phrase-display').innerText = endMsg;
-                speak(endMsg);
-            }
-            updateStats();
+            // Allow index to go up to length (the "End" state)
+            if (nextIdx < 0) nextIdx = 0;
+            if (nextIdx > col.phrases.length) nextIdx = col.phrases.length;
+
+            if (nextIdx === currentIndex && direction !== 0) return;
+
+            currentIndex = nextIdx;
+            const card = document.getElementById('flash-card-container');
+            const display = document.getElementById('phrase-display');
+            
+            card.style.opacity = 0;
+            setTimeout(() => {
+                if (currentIndex < col.phrases.length) {
+                    const text = col.phrases[currentIndex];
+                    display.innerText = text;
+                    speak(text);
+                } else {
+                    const endMsg = "End of Collection";
+                    display.innerText = endMsg;
+                    speak(endMsg);
+                }
+                card.style.opacity = 1;
+                updateStats();
+            }, 150);
         }
 
         function speak(text) {
@@ -529,7 +533,9 @@
             const col = collections.find(c => c.id === currentCollectionId);
             if (!col) return;
             const count = col.phrases.length;
-            const current = currentIndex + 1;
+            
+            // If current index is 'count', we are at the end screen
+            const current = currentIndex < count ? currentIndex + 1 : count;
             document.getElementById('stats').innerText = `${current} / ${count}`;
             const progressWidth = count > 0 ? (current / count) * 100 : 0;
             document.getElementById('progress').style.width = `${progressWidth}%`;
