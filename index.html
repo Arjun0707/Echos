@@ -91,8 +91,7 @@
             align-items: center;
             text-align: center;
             min-height: 0; 
-            padding-bottom: 2rem;
-            pointer-events: none; /* Let events pass through to player-view */
+            padding: 1rem 0;
         }
 
         .footer-zone {
@@ -106,6 +105,38 @@
             pointer-events: none;
         }
 
+        /* Flash Card */
+        .flash-card {
+            width: 100%;
+            height: 65vh;
+            max-width: 500px;
+            background: #ffffff;
+            border-radius: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2.5rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flash-card:active {
+            transform: scale(0.98);
+        }
+
+        #phrase-display {
+            font-size: 1.5rem;
+            line-height: 1.6;
+            color: #1a1a1a;
+            font-weight: 500;
+            font-family: "Iowan Old Style", "Apple Garamond", "Baskerville", serif;
+            text-align: center;
+            user-select: none;
+        }
+
         /* Elements */
         .nav-link {
             font-size: 0.85rem;
@@ -117,7 +148,7 @@
             border-radius: 20px;
             font-weight: 600;
             box-shadow: 0 2px 8px rgba(0,0,0,0.6);
-            pointer-events: auto; /* Re-enable for buttons */
+            pointer-events: auto;
         }
 
         .collections-list {
@@ -149,15 +180,6 @@
             font-weight: bold;
         }
 
-        #phrase-display {
-            font-size: 1.7rem;
-            line-height: 1.5;
-            max-width: 600px;
-            color: #e0e0e0;
-            font-weight: 400;
-            transition: opacity 0.2s ease;
-        }
-
         /* Stats & Meta */
         .meta-info {
             color: var(--text-main);
@@ -168,9 +190,10 @@
 
         .instruction-hint {
             color: var(--text-dim);
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
+            text-align: center;
         }
 
         /* Editor Specifics */
@@ -271,12 +294,14 @@
         </div>
         
         <div class="content-zone">
-            <div id="phrase-display">...</div>
+            <div class="flash-card" id="flash-card-container">
+                <div id="phrase-display">Tap to Begin</div>
+            </div>
         </div>
         
         <div class="footer-zone">
             <div class="meta-info" id="stats">0 / 0</div>
-            <div class="instruction-hint">Tap Anywhere to Speak / Swipe to Move</div>
+            <div class="instruction-hint">Swipe to Move & Listen / Tap to Repeat</div>
         </div>
     </div>
 
@@ -303,7 +328,9 @@
         const synth = window.speechSynthesis;
         
         let touchStartX = 0;
+        let touchStartY = 0;
         let touchEndX = 0;
+        let touchEndY = 0;
 
         const pastelColors = ['#fff9c4', '#f8bbd0', '#c8e6c9', '#e1f5fe', '#f3e5f5'];
 
@@ -325,28 +352,32 @@
 
         function setupInteractions() {
             const player = document.getElementById('player-view');
+            const card = document.getElementById('flash-card-container');
 
             player.addEventListener('touchstart', e => {
-                // If touching a button, don't initiate swipe logic
-                if (e.target.classList.contains('nav-link')) return;
+                if (e.target.closest('.nav-link')) return;
                 touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
             }, {passive: true});
 
             player.addEventListener('touchend', e => {
-                if (e.target.classList.contains('nav-link')) return;
+                if (e.target.closest('.nav-link')) return;
                 touchEndX = e.changedTouches[0].screenX;
+                touchEndY = e.changedTouches[0].screenY;
                 handleSwipe();
             }, {passive: true});
 
-            player.addEventListener('click', (e) => {
-                // Ignore clicks on header buttons
-                if (e.target.closest('.nav-link')) return;
-
-                // Check if it was a tap and not a swipe
-                if (Math.abs(touchEndX - touchStartX) < 10) {
+            card.addEventListener('click', (e) => {
+                // Determine if it was a tap by checking distance
+                const dx = Math.abs(touchEndX - touchStartX);
+                const dy = Math.abs(touchEndY - touchStartY);
+                if (dx < 10 && dy < 10) {
                     const col = collections.find(c => c.id === currentCollectionId);
                     if (col && col.phrases[currentIndex]) {
                         speak(col.phrases[currentIndex]);
+                    } else if (document.getElementById('phrase-display').innerText === "Tap to Begin") {
+                        // Handle the very first tap to start
+                        navigate(0);
                     }
                 }
             });
@@ -354,8 +385,14 @@
 
         function handleSwipe() {
             const threshold = 50;
-            if (touchEndX < touchStartX - threshold) navigate(1); 
-            if (touchEndX > touchStartX + threshold) navigate(-1); 
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+            
+            // Ensure swipe is primarily horizontal
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx < -threshold) navigate(1); // Swipe Left -> Next
+                if (dx > threshold) navigate(-1); // Swipe Right -> Prev
+            }
         }
 
         function saveToDisk() {
@@ -379,7 +416,7 @@
                 const card = document.createElement('div');
                 card.className = 'collection-card';
                 card.style.backgroundColor = pastelColors[index % pastelColors.length];
-                card.onclick = () => startPlayer(c.id);
+                card.onclick = () => startPlayer(c.id, index % pastelColors.length);
                 card.innerHTML = `
                     <div class="collection-title">${c.title}</div>
                     <div class="collection-count">${c.phrases.length} items</div>
@@ -434,13 +471,18 @@
             showView('home');
         }
 
-        function startPlayer(id) {
+        function startPlayer(id, colorIndex) {
             currentCollectionId = id;
             currentIndex = 0; 
             const col = collections.find(c => c.id === id);
             
+            const cardElement = document.getElementById('flash-card-container');
+            cardElement.style.backgroundColor = pastelColors[colorIndex];
+            
             if (col && col.phrases.length > 0) {
                 document.getElementById('phrase-display').innerText = col.phrases[0];
+                // Automatically speak the first one since we entered via a click
+                speak(col.phrases[0]);
             } else {
                 document.getElementById('phrase-display').innerText = "No phrases found.";
             }
@@ -454,19 +496,22 @@
             if (!col || col.phrases.length === 0) return;
 
             const nextIdx = currentIndex + direction;
+            const card = document.getElementById('flash-card-container');
             
             if (nextIdx >= 0 && nextIdx < col.phrases.length) {
                 currentIndex = nextIdx;
                 const text = col.phrases[currentIndex];
-                document.getElementById('phrase-display').style.opacity = 0;
+                
+                card.style.opacity = 0;
                 setTimeout(() => {
                     document.getElementById('phrase-display').innerText = text;
-                    document.getElementById('phrase-display').style.opacity = 1;
-                    speak(text);
+                    card.style.opacity = 1;
+                    speak(text); // Automatically speak after navigation
                 }, 150);
             } else if (nextIdx >= col.phrases.length) {
-                document.getElementById('phrase-display').innerText = "End of Collection";
-                speak("End of Collection");
+                const endMsg = "End of Collection";
+                document.getElementById('phrase-display').innerText = endMsg;
+                speak(endMsg);
             }
             updateStats();
         }
